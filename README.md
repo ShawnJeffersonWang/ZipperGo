@@ -1,1 +1,1 @@
-# ZipperGo
+# CampusGuide

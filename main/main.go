@@ -2,17 +2,116 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"strconv"
+	"syscall"
 )
 
 func main() {
+
 	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
 	adjList, err := ReadCampusGraph(filename)
 	if err != nil {
 		fmt.Printf("读取文件错误: %s\n", err)
 		return
 	}
+	shortestPath := adjList.BFS(1, 4)
+	fmt.Println("Shortest path", shortestPath)
+	syscall.Pause()
 	var isAdmin bool
 	var sourceID, targetID int
+
+	router := gin.Default()
+	router.LoadHTMLGlob("main/*") // 指定HTML模板目录
+
+	// 设置登录页面路由
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(200, "login.html", gin.H{})
+	})
+
+	// 处理登录请求
+	router.POST("/login", func(c *gin.Context) {
+		// 获取登录表单数据
+		username := c.PostForm("username")
+		password := c.PostForm("password")
+
+		// 进行登录校验
+		if username == "a" && password == "123" {
+			// 登录成功，跳转到导航页面
+			c.Redirect(302, "/navigation")
+		} else {
+			// 登录失败，返回错误提示信息
+			c.HTML(200, "login.html", gin.H{
+				"Error": "Invalid username or password",
+			})
+		}
+	})
+
+	// 设置导航页面路由
+	router.GET("/navigation", func(c *gin.Context) {
+		// 在这里渲染导航页面的HTML模板
+		c.HTML(200, "navigation.html", gin.H{})
+	})
+
+	//// 定义GET请求的处理函数，用于显示表单页面
+	//router.GET("/", func(c *gin.Context) {
+	//	c.HTML(200, "index.html", nil)
+	//})
+
+	router.POST("/shortestPath", func(c *gin.Context) {
+		sourceID := c.PostForm("sourceID")
+		targetID := c.PostForm("targetID")
+
+		// 将sourceID和targetID转换为整数
+		source, err := strconv.Atoi(sourceID)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Invalid sourceID"})
+			return
+		}
+
+		target, err := strconv.Atoi(targetID)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Invalid targetID"})
+			return
+		}
+
+		// 使用Dijkstra算法查找最短路径
+		path, weight := adjList.Dijkstra(source, target)
+
+		if path == nil {
+			c.JSON(404, gin.H{"error": "Path not found"})
+		} else {
+			c.HTML(200, "result.html", gin.H{
+				"sourceID": sourceID,
+				"targetID": targetID,
+				"path":     path,
+				"weight":   weight,
+			})
+		}
+	})
+
+	// 启动服务器
+	router.Run(":8081")
+
+	//router.POST("/upload", func(c *gin.Context) {
+	//	name := c.PostForm("name")
+	//	email := c.PostForm("email")
+	//
+	//	file, err := c.FormFile("file")
+	//	if err != nil {
+	//		c.String(http.StatusBadRequest, "get form err: %s", err.Error())
+	//		return
+	//	}
+	//
+	//	filename := filepath.Base(file.Filename)
+	//	if err := c.SaveUploadedFile(file, filename); err != nil {
+	//		c.String(http.StatusBadRequest, "upload file err: %s", err.Error())
+	//		return
+	//	}
+	//
+	//	c.String(http.StatusOK, "File %s uploaded successfullu with fields name=%s and email=%s.", file.Filename, name, email)
+	//})
+	//router.Run(":8080")
 
 	err = RedisLogin()
 	if err != nil {
@@ -20,6 +119,7 @@ func main() {
 		isAdmin = false
 		return
 	}
+	isAdmin = true
 
 	// 执行不同的操作
 	for {

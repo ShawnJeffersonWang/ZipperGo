@@ -58,10 +58,11 @@ func RedisLogin() error {
 		}
 
 		// 将密码保存到Redis
-		err = client.Set("admin_password", &password, 0).Err()
+		err = client.Set("admin_password", password, 0).Err()
 		if err != nil {
 			return fmt.Errorf("无法存储密码: %v", err)
 		}
+		println("密码设置成功")
 	}
 
 	// 用户登录

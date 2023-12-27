@@ -140,3 +140,83 @@ func (g *AdjList) Dijkstra(sourceID int, targetID int) ([]int, int) {
 
 	return path, dist[targetID]
 }
+
+// BFS 使用广度优先搜索算法查找最短路径
+func (g *AdjList) BFS(startID, targetID int) []int {
+	visited := make(map[int]bool) // 记录节点是否已访问
+	queue := [][]int{{startID}}   // 使用队列保存路径，初始路径只包含起始节点
+	for len(queue) > 0 {
+		path := queue[0] // 取出队列中的第一个路径
+		queue = queue[1:]
+		nodeID := path[len(path)-1] // 获取当前路径的最后一个节点
+		if nodeID == targetID {     // 如果找到目标节点，返回路径
+			return path
+		}
+		if !visited[nodeID] { // 如果当前节点未被访问，则继续扩展路径
+			visited[nodeID] = true          // 标记当前节点为已访问
+			adjEdges := g.Adjacency[nodeID] // 获取当前节点的相邻边
+			for _, edge := range adjEdges {
+				newPath := append(path, edge.EndVex) // 将当前边的终点添加到路径中
+				queue = append(queue, newPath)       // 将新路径加入队列
+			}
+		}
+	}
+	return nil // 如果未找到最短路径，返回空路径
+}
+
+// DFS1 使用深度优先搜索算法查找最短路径
+func (g *AdjList) DFS1(startID, targetID int) []int {
+	visited := make(map[int]bool) // 记录节点是否已访问
+	var shortestPath []int        // 最短路径
+	path := []int{startID}        // 当前路径
+	g.dfsHelper(startID, targetID, visited, path, &shortestPath)
+	return shortestPath
+}
+
+// dfsHelper 是DFS1的辅助函数，用于递归搜索最短路径
+func (g *AdjList) dfsHelper(currentID, targetID int, visited map[int]bool, path []int, shortestPath *[]int) {
+	if currentID == targetID { // 如果当前节点是目标节点
+		if len(*shortestPath) == 0 || len(path) < len(*shortestPath) {
+			*shortestPath = append([]int(nil), path...) // 更新最短路径
+		}
+		return
+	}
+	visited[currentID] = true // 标记当前节点为已访问
+	adjEdges := g.Adjacency[currentID]
+	for _, edge := range adjEdges {
+		if !visited[edge.EndVex] {
+			newPath := append(path, edge.EndVex) // 添加当前边的终点到路径中
+			g.dfsHelper(edge.EndVex, targetID, visited, newPath, shortestPath)
+		}
+	}
+	visited[currentID] = false // 回溯时取消当前节点的访问标记
+}
+
+// DFS 使用深度优先搜索算法查找最短路径
+func (g *AdjList) DFS(startID, targetID int) []int {
+	visited := make(map[int]bool)     // 记录节点是否已访问
+	stack := []int{startID}           // 使用栈模拟DFS
+	path := make(map[int][]int)       // 记录路径
+	path[startID] = []int{startID}     // 起始节点的路径只包含自身
+
+	for len(stack) > 0 {
+		currentID := stack[len(stack)-1] // 获取栈顶节点
+		stack = stack[:len(stack)-1]     // 出栈
+		if currentID == targetID {       // 如果找到目标节点，返回路径
+			return path[currentID]
+		}
+		if !visited[currentID] {        // 如果当前节点未被访问，则继续搜索
+			visited[currentID] = true    // 标记当前节点为已访问
+			adjEdges := g.Adjacency[currentID]
+			for _, edge := range adjEdges {
+				if !visited[edge.EndVex] {
+					stack = append(stack, edge.EndVex) // 将相邻节点入栈
+					newPath := append(path[currentID], edge.EndVex) // 更新路径
+					path[edge.EndVex] = newPath
+				}
+			}
+		}
+	}
+
+	return nil // 如果未找到最短路径，返回空路径
+}

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shortest Path Result</title>
+    <style>
+        .path {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<h1>Shortest Path Result</h1>
+<p>The shortest path from {{ .sourceID }} to {{ .targetID }} is:</p>
+<p class="path">{{ range $index, $node := .path }}{{ if $index }} -> {{ end }}{{ $node }}{{ end }}</p>
+<p>The weight of the shortest path is: {{ .weight }}</p>
+<img src="../static/5F33657182CDF26CCDD1A772BE318A34.jpg" alt="example.jpg">
+</body>
+</html>
