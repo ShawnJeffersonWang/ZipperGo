@@ -3,6 +3,9 @@
 <head>
     <title>Navigation</title>
     <style>
+        * {
+            transition: .2s;
+        }
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -49,9 +52,9 @@
 <body>
 <h1>查找最短路径（不考虑权重）</h1>
 <form action="/bfsPath" method="POST">
-    <label for="sourceID">Source ID:</label>
+    <label for="sourceID">起点:</label>
     <input type="text" id="sourceID" name="sourceID"><br><br>
-    <label for="targetID">Target ID:</label>
+    <label for="targetID">终点:</label>
     <input type="text" id="targetID" name="targetID"><br><br>
     <input type="hidden" name="_method" value="POST">
     <input type="submit" value="Find Shortest Path">

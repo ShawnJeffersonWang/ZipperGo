@@ -12,6 +12,7 @@ func main() {
 	router.LoadHTMLGlob("static/*") // 指定HTML模板目录
 
 	// 设置登录页面路由
+	router.Static("/images", "./images")
 	router.GET("/", Index)
 	router.GET("/startLogin", StartLogin)
 	router.POST("/login", Login)
@@ -170,29 +171,35 @@ func User(c *gin.Context) {
 func ShortestPath(c *gin.Context) {
 	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
 	adjList, err := ReadCampusGraph(filename)
-	sourceID := c.PostForm("sourceID")
-	targetID := c.PostForm("targetID")
+	source := c.PostForm("sourceID")
+	target := c.PostForm("targetID")
 
-	source, err := strconv.Atoi(sourceID)
+	sourceID, err := strconv.Atoi(source)
 	if err != nil {
 		c.JSON(400, "Invalid sourceID")
 		return
 	}
 
-	target, err := strconv.Atoi(targetID)
+	targetID, err := strconv.Atoi(target)
 	if err != nil {
 		c.JSON(400, "Invalid targetID")
 		return
 	}
-	path, weight := adjList.Dijkstra(source, target)
+	path, weight := adjList.Dijkstra(sourceID, targetID)
 	if path == nil {
 		c.JSON(404, "path not found")
 	} else {
+		// 将路径转换为节点名称的数组
+		nodeNames := make([]string, len(path))
+		for i, nodeID := range path {
+			nodeNames[i] = adjList.Nodes[nodeID].Name
+		}
+
 		c.HTML(200, "shortestPath.html", gin.H{
-			"source": source,
-			"target": target,
-			"path":   path,
-			"weight": weight,
+			"sourceID": adjList.Nodes[sourceID].Name,
+			"targetID": adjList.Nodes[targetID].Name,
+			"path":     nodeNames,
+			"weight":   weight,
 		})
 	}
 }
@@ -200,29 +207,34 @@ func ShortestPath(c *gin.Context) {
 func BFSPath(c *gin.Context) {
 	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
 	adjList, err := ReadCampusGraph(filename)
-	sourceID := c.PostForm("sourceID")
-	targetID := c.PostForm("targetID")
+	source := c.PostForm("sourceID")
+	target := c.PostForm("targetID")
 
-	source, err := strconv.Atoi(sourceID)
+	sourceID, err := strconv.Atoi(source)
 	if err != nil {
 		c.JSON(400, "Invalid sourceID")
 		return
 	}
 
-	target, err := strconv.Atoi(targetID)
+	targetID, err := strconv.Atoi(target)
 	if err != nil {
 		c.JSON(400, "Invalid targetID")
 		return
 	}
-	path := adjList.BFS(source, target)
+	path := adjList.BFS(sourceID, targetID)
 	if path == nil {
 		c.JSON(404, "path not found")
 	} else {
+		nodeNames := make([]string, len(path))
+		for i, nodeID := range path {
+			nodeNames[i] = adjList.Nodes[nodeID].Name
+		}
+
 		c.HTML(200, "shortestPath.html", gin.H{
-			"source": source,
-			"target": target,
-			"path":   path,
-			"weight": nil,
+			"sourceID": adjList.Nodes[sourceID].Name,
+			"targetID": adjList.Nodes[targetID].Name,
+			"path":     nodeNames,
+			"weight":   nil,
 		})
 	}
 }
