@@ -15,11 +15,13 @@ func main() {
 	router.GET("/", Index)
 	router.GET("/startLogin", StartLogin)
 	router.POST("/login", Login)
+	router.GET("/startAdmin", StartAdmin)
 	router.POST("/admin", Admin)
 	router.POST("/user", User)
 	router.POST("/updateMap", UpdateMap)
 	router.POST("/updateRoad", UpdateRoad)
 	router.POST("/shortestPath", ShortestPath)
+	router.POST("/bfsPath", BFSPath)
 
 	//// 定义GET请求的处理函数，用于显示表单页面
 	//router.GET("/", func(c *gin.Context) {
@@ -58,6 +60,10 @@ func Login(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Invalid username or password")
 		return
 	}
+}
+
+func StartAdmin(c *gin.Context) {
+	c.HTML(http.StatusOK, "startAdmin.html", gin.H{})
 }
 
 func Admin(c *gin.Context) {
@@ -147,7 +153,10 @@ func User(c *gin.Context) {
 		})
 	case "2":
 		// 寻找最优路径
-		c.HTML(http.StatusOK, "navigation.html", gin.H{})
+		c.HTML(http.StatusOK, "dijkstra.html", gin.H{})
+	case "3":
+		// 不考虑权重
+		c.HTML(http.StatusOK, "bfs.html", gin.H{})
 	case "0":
 		// 退出
 		fmt.Println("退出程序")
@@ -184,6 +193,36 @@ func ShortestPath(c *gin.Context) {
 			"target": target,
 			"path":   path,
 			"weight": weight,
+		})
+	}
+}
+
+func BFSPath(c *gin.Context) {
+	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
+	adjList, err := ReadCampusGraph(filename)
+	sourceID := c.PostForm("sourceID")
+	targetID := c.PostForm("targetID")
+
+	source, err := strconv.Atoi(sourceID)
+	if err != nil {
+		c.JSON(400, "Invalid sourceID")
+		return
+	}
+
+	target, err := strconv.Atoi(targetID)
+	if err != nil {
+		c.JSON(400, "Invalid targetID")
+		return
+	}
+	path := adjList.BFS(source, target)
+	if path == nil {
+		c.JSON(404, "path not found")
+	} else {
+		c.HTML(200, "shortestPath.html", gin.H{
+			"source": source,
+			"target": target,
+			"path":   path,
+			"weight": nil,
 		})
 	}
 }

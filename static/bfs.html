@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>普通用户操作</title>
+    <title>Navigation</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,7 +26,7 @@
             margin-right: 5px;
         }
 
-        select {
+        input[type="text"] {
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 3px;
@@ -47,17 +47,14 @@
     </style>
 </head>
 <body>
-<h1>普通用户操作</h1>
-<form action="/user" method="post">
-    <label for="choice">请选择操作：</label>
-    <select id="choice" name="choice">
-        <option value="1">查看地图</option>
-        <option value="2">寻找最优路径</option>
-        <option value="3">寻找最优路径（不考虑权重）</option>
-        <option value="0">退出</option>
-    </select>
-    <br><br>
-    <input type="submit" value="提交">
+<h1>查找最短路径（不考虑权重）</h1>
+<form action="/bfsPath" method="POST">
+    <label for="sourceID">Source ID:</label>
+    <input type="text" id="sourceID" name="sourceID"><br><br>
+    <label for="targetID">Target ID:</label>
+    <input type="text" id="targetID" name="targetID"><br><br>
+    <input type="hidden" name="_method" value="POST">
+    <input type="submit" value="Find Shortest Path">
 </form>
 </body>
 </html>
