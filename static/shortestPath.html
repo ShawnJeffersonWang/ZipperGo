@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shortest Path Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .path {
+            font-weight: bold;
+            font-size: 18px;
+            color: #555;
+        }
+
+        p {
+            font-size: 16px;
+            color: #777;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+<h1>查询成功！</h1>
+<p>从 <span style="color: #007bff;">{{ .sourceID }}</span> 到 <span style="color: #007bff;">{{ .targetID }}</span> 的最短路径是:</p>
+<p class="path">{{ range $index, $node := .path }}{{ if $index }} <span style="color: #007bff;">-></span> {{ end }}<span style="color: #007bff;">{{ $node }}</span>{{ end }}</p>
+<p>最短路径权重为: <span style="color: #007bff;">{{ .weight }}</span></p>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>校园平面图</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+<h1>校园平面图</h1>
+
+<h2>节点信息</h2>
+<table>
+    <thead>
+    <tr>
+        <th>节点ID</th>
+        <th>节点名称</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 在这里使用模板引擎或循环生成节点信息的表格行 -->
+    {{range .Nodes}}
+    <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Name}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+</table>
+
+<h2>边信息</h2>
+<table>
+    <thead>
+    <tr>
+        <th>起始节点ID</th>
+        <th>结束节点ID</th>
+        <th>边权重</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 在这里使用模板引擎或循环生成边信息的表格行 -->
+    {{range $startVex, $edges := .Adjacency}}
+    {{range $edges}}
+    <tr>
+        <td>{{$startVex}}</td>
+        <td>{{.EndVex}}</td>
+        <td>{{.Weight}}</td>
+    </tr>
+    {{end}}
+    {{end}}
+    </tbody>
+</table>
+</body>
+</html>
