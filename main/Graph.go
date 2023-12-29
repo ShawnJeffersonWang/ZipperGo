@@ -7,21 +7,21 @@ import (
 
 // Node 表示校园平面图中的一个节点
 type Node struct {
-	ID   int
-	Name string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 // Edge 表示校园平面图中的一条边
 type Edge struct {
-	StartVex int
-	EndVex   int
-	Weight   int
+	StartVex int `json:"startVex"`
+	EndVex   int `json:"endVex"`
+	Weight   int `json:"weight"`
 }
 
 // AdjList 表示校园平面图的邻接表
 type AdjList struct {
-	Nodes     []Node
-	Adjacency map[int][]Edge
+	Nodes     []Node         `json:"nodes"`
+	Adjacency map[int][]Edge `json:"adjacency"`
 }
 
 // NewAdjList 创建一个新的校园平面图的邻接表
@@ -72,6 +72,40 @@ func (g *AdjList) UpdateEdgeWeight(startVex, endVex, newWeight int) error {
 		}
 	}
 	return fmt.Errorf("边 (%d, %d) 不存在", startVex, endVex)
+}
+
+// RemoveNode 删除指定节点及其相关的边
+func (g *AdjList) RemoveNode(nodeID int) {
+	// 删除节点
+	for i, node := range g.Nodes {
+		if node.ID == nodeID {
+			g.Nodes = append(g.Nodes[:i], g.Nodes[i+1:]...)
+			break
+		}
+	}
+
+	// 删除与该节点相关的边
+	delete(g.Adjacency, nodeID)
+	for _, edges := range g.Adjacency {
+		for i := 0; i < len(edges); i++ {
+			if edges[i].StartVex == nodeID || edges[i].EndVex == nodeID {
+				edges = append(edges[:i], edges[i+1:]...)
+				i-- // 由于删除了一个元素，需要调整索引
+			}
+		}
+	}
+}
+
+// RemoveEdge 删除指定边
+func (g *AdjList) RemoveEdge(startVex, endVex int) {
+	edges := g.Adjacency[startVex]
+	for i := 0; i < len(edges); i++ {
+		if edges[i].EndVex == endVex {
+			edges = append(edges[:i], edges[i+1:]...)
+			break
+		}
+	}
+	g.Adjacency[startVex] = edges
 }
 
 // Print 打印校园平面图的内容
@@ -194,10 +228,10 @@ func (g *AdjList) dfsHelper(currentID, targetID int, visited map[int]bool, path 
 
 // DFS 使用深度优先搜索算法查找最短路径
 func (g *AdjList) DFS(startID, targetID int) []int {
-	visited := make(map[int]bool)     // 记录节点是否已访问
-	stack := []int{startID}           // 使用栈模拟DFS
-	path := make(map[int][]int)       // 记录路径
-	path[startID] = []int{startID}     // 起始节点的路径只包含自身
+	visited := make(map[int]bool)  // 记录节点是否已访问
+	stack := []int{startID}        // 使用栈模拟DFS
+	path := make(map[int][]int)    // 记录路径
+	path[startID] = []int{startID} // 起始节点的路径只包含自身
 
 	for len(stack) > 0 {
 		currentID := stack[len(stack)-1] // 获取栈顶节点
@@ -205,12 +239,12 @@ func (g *AdjList) DFS(startID, targetID int) []int {
 		if currentID == targetID {       // 如果找到目标节点，返回路径
 			return path[currentID]
 		}
-		if !visited[currentID] {        // 如果当前节点未被访问，则继续搜索
-			visited[currentID] = true    // 标记当前节点为已访问
+		if !visited[currentID] { // 如果当前节点未被访问，则继续搜索
+			visited[currentID] = true // 标记当前节点为已访问
 			adjEdges := g.Adjacency[currentID]
 			for _, edge := range adjEdges {
 				if !visited[edge.EndVex] {
-					stack = append(stack, edge.EndVex) // 将相邻节点入栈
+					stack = append(stack, edge.EndVex)              // 将相邻节点入栈
 					newPath := append(path[currentID], edge.EndVex) // 更新路径
 					path[edge.EndVex] = newPath
 				}

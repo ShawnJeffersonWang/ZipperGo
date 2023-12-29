@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	//gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.LoadHTMLGlob("static/*") // 指定HTML模板目录
 
@@ -21,6 +22,8 @@ func main() {
 	router.POST("/user", User)
 	router.POST("/updateMap", UpdateMap)
 	router.POST("/updateRoad", UpdateRoad)
+	router.POST("/removeNode", RemoveNode)
+	router.POST("/removeEdge", RemoveEdge)
 	router.POST("/shortestPath", ShortestPath)
 	router.POST("/bfsPath", BFSPath)
 
@@ -44,7 +47,7 @@ func StartLogin(c *gin.Context) {
 	} else if userType == "normal" {
 		c.HTML(http.StatusOK, "normal.html", gin.H{})
 	} else {
-		c.JSON(400, "Invalid user type")
+		c.JSON(http.StatusBadRequest, "Invalid user type")
 	}
 }
 
@@ -75,8 +78,12 @@ func Admin(c *gin.Context) {
 		c.HTML(http.StatusOK, "updateMap.html", gin.H{})
 	case "2":
 		c.HTML(http.StatusOK, "updateRoad.html", gin.H{})
+	case "3":
+		c.HTML(http.StatusOK, "removeNode.html", gin.H{})
+	case "4":
+		c.HTML(http.StatusOK, "removeEdge.html", gin.H{})
 	case "0":
-		c.Redirect(302, "/")
+		c.Redirect(http.StatusFound, "/")
 	default:
 		c.String(http.StatusBadRequest, "无效的选择")
 	}
@@ -103,7 +110,7 @@ func UpdateMap(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(302, "/startAdmin")
+	c.Redirect(http.StatusFound, "/startAdmin")
 }
 
 func UpdateRoad(c *gin.Context) {
@@ -131,7 +138,59 @@ func UpdateRoad(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(302, "/startAdmin")
+	c.Redirect(http.StatusFound, "/startAdmin")
+}
+
+func RemoveNode(c *gin.Context) {
+	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
+	adjList, err := ReadCampusGraph(filename)
+	if err != nil {
+		fmt.Printf("读取文件错误: %s\n", err)
+		return
+	}
+
+	// 获取要删除的节点ID
+	_nodeID := c.PostForm("nodeID")
+	nodeID, _ := strconv.Atoi(_nodeID)
+
+	// 删除节点及相关边
+	adjList.RemoveNode(nodeID)
+
+	// 保存更新后的校园平面图
+	err = SaveCampusGraph(adjList, filename)
+	if err != nil {
+		fmt.Printf("保存文件错误: %s\n", err)
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/startAdmin")
+}
+
+func RemoveEdge(c *gin.Context) {
+	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
+	adjList, err := ReadCampusGraph(filename)
+	if err != nil {
+		fmt.Printf("读取文件错误: %s\n", err)
+		return
+	}
+
+	// 获取要删除的边的起始节点ID和结束节点ID
+	_startVex := c.PostForm("startVex")
+	_endVex := c.PostForm("endVex")
+	startVex, _ := strconv.Atoi(_startVex)
+	endVex, _ := strconv.Atoi(_endVex)
+
+	// 删除边
+	adjList.RemoveEdge(startVex, endVex)
+
+	// 保存更新后的校园平面图
+	err = SaveCampusGraph(adjList, filename)
+	if err != nil {
+		fmt.Printf("保存文件错误: %s\n", err)
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/startAdmin")
 }
 
 func User(c *gin.Context) {
@@ -148,6 +207,17 @@ func User(c *gin.Context) {
 			return
 		}
 
+		//jsonData, err := json.Marshal(adjList)
+		//if err != nil {
+		//	c.JSON(http.StatusInternalServerError, gin.H{
+		//		"error": "Failed to marshal data",
+		//	})
+		//	return
+		//}
+		//c.HTML(http.StatusOK, "print.html", gin.H{
+		//	"Data": string(jsonData),
+		//})
+
 		c.HTML(http.StatusOK, "print.html", gin.H{
 			"Nodes":     adjList.Nodes,
 			"Adjacency": adjList.Adjacency,
@@ -161,7 +231,7 @@ func User(c *gin.Context) {
 	case "0":
 		// 退出
 		fmt.Println("退出程序")
-		c.Redirect(302, "/")
+		c.Redirect(http.StatusFound, "/")
 
 	default:
 		fmt.Println("无效的选项")
@@ -176,18 +246,18 @@ func ShortestPath(c *gin.Context) {
 
 	sourceID, err := strconv.Atoi(source)
 	if err != nil {
-		c.JSON(400, "Invalid sourceID")
+		c.JSON(http.StatusBadRequest, "Invalid sourceID")
 		return
 	}
 
 	targetID, err := strconv.Atoi(target)
 	if err != nil {
-		c.JSON(400, "Invalid targetID")
+		c.JSON(http.StatusBadRequest, "Invalid targetID")
 		return
 	}
 	path, weight := adjList.Dijkstra(sourceID, targetID)
 	if path == nil {
-		c.JSON(404, "path not found")
+		c.JSON(http.StatusNotFound, "path not found")
 	} else {
 		// 将路径转换为节点名称的数组
 		nodeNames := make([]string, len(path))
@@ -195,7 +265,7 @@ func ShortestPath(c *gin.Context) {
 			nodeNames[i] = adjList.Nodes[nodeID].Name
 		}
 
-		c.HTML(200, "shortestPath.html", gin.H{
+		c.HTML(http.StatusOK, "shortestPath.html", gin.H{
 			"sourceID": adjList.Nodes[sourceID].Name,
 			"targetID": adjList.Nodes[targetID].Name,
 			"path":     nodeNames,
@@ -212,25 +282,25 @@ func BFSPath(c *gin.Context) {
 
 	sourceID, err := strconv.Atoi(source)
 	if err != nil {
-		c.JSON(400, "Invalid sourceID")
+		c.JSON(http.StatusBadRequest, "Invalid sourceID")
 		return
 	}
 
 	targetID, err := strconv.Atoi(target)
 	if err != nil {
-		c.JSON(400, "Invalid targetID")
+		c.JSON(http.StatusBadRequest, "Invalid targetID")
 		return
 	}
 	path := adjList.BFS(sourceID, targetID)
 	if path == nil {
-		c.JSON(404, "path not found")
+		c.JSON(http.StatusNotFound, "path not found")
 	} else {
 		nodeNames := make([]string, len(path))
 		for i, nodeID := range path {
 			nodeNames[i] = adjList.Nodes[nodeID].Name
 		}
 
-		c.HTML(200, "shortestPath.html", gin.H{
+		c.HTML(http.StatusOK, "shortestPath.html", gin.H{
 			"sourceID": adjList.Nodes[sourceID].Name,
 			"targetID": adjList.Nodes[targetID].Name,
 			"path":     nodeNames,
