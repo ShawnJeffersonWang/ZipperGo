@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
 	"syscall"
@@ -21,10 +22,19 @@ func readPassword() (string, error) {
 }
 
 func InitRedis() (*redis.Client, error) {
+	// 加载配置文件
+	viper.SetConfigFile("/home/shawn/config/config.yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// 从配置文件中获取Redis密码
+	password := viper.GetString("redis_password")
 	// 创建Redis客户端
 	client := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
-		Password: "20021201",
+		Password: password,
 		DB:       0,
 	})
 
