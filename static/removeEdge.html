@@ -1,66 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>删除边</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
+    <meta charset="utf-8">
+    <title>删除边</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
 
-    .container {
-      text-align: center;
-    }
+        .container {
+            text-align: center;
+        }
 
-    h1 {
-      margin-bottom: 20px;
-    }
+        h1 {
+            margin-bottom: 20px;
+        }
 
-    form {
-      display: inline-block;
-    }
+        form {
+            display: inline-block;
+        }
 
-    label {
-      display: block;
-      margin-bottom: 10px;
-    }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
 
-    input[type="number"] {
-      padding: 5px;
-      width: 200px;
-    }
+        input[type="number"] {
+            padding: 5px;
+            width: 200px;
+        }
 
-    button[type="submit"] {
-      padding: 10px 20px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+        button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
 
-    button[type="submit"]:hover {
-      background-color: #45a049;
-    }
-  </style>
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-  <h1>删除边</h1>
-  <form action="/removeEdge" method="post">
-    <label for="startVex">起始节点ID：</label>
-    <input type="number" id="startVex" name="startVex" required>
-    <br><br>
-    <label for="endVex">结束节点ID：</label>
-    <input type="number" id="endVex" name="endVex" required>
-    <br><br>
-    <button type="submit">删除</button>
-  </form>
+    <h1>删除边</h1>
+    <form action="/removeEdge" method="post">
+        <label for="startVex">起始节点ID：</label>
+        <input type="number" id="startVex" name="startVex" required>
+        <br><br>
+        <label for="endVex">结束节点ID：</label>
+        <input type="number" id="endVex" name="endVex" required>
+        <br><br>
+        <button type="submit">删除</button>
+    </form>
 </div>
 </body>
 </html>

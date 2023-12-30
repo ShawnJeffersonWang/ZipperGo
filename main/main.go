@@ -20,6 +20,9 @@ func main() {
 	router.GET("/startAdmin", StartAdmin)
 	router.POST("/admin", Admin)
 	router.POST("/user", User)
+
+	router.POST("/addMap", AddMap)
+	router.POST("/addRoad", AddRoad)
 	router.POST("/updateMap", UpdateMap)
 	router.POST("/updateRoad", UpdateRoad)
 	router.POST("/removeNode", RemoveNode)
@@ -59,7 +62,7 @@ func Login(c *gin.Context) {
 	savedPassword, _ := client.Get("admin_password").Result()
 
 	if username == savedUsername && password == savedPassword {
-		c.HTML(http.StatusOK, "startAdmin.html", gin.H{})
+		c.HTML(http.StatusOK, "admin.html", gin.H{})
 	} else {
 		c.String(http.StatusBadRequest, "Invalid username or password")
 		return
@@ -67,20 +70,25 @@ func Login(c *gin.Context) {
 }
 
 func StartAdmin(c *gin.Context) {
-	c.HTML(http.StatusOK, "startAdmin.html", gin.H{})
+	c.HTML(http.StatusOK, "admin.html", gin.H{})
 }
 
+// Admin 不需要admin.html，因为设置了/admin到Admin的路由
 func Admin(c *gin.Context) {
 	choice := c.PostForm("choice")
 
 	switch choice {
 	case "1":
-		c.HTML(http.StatusOK, "updateMap.html", gin.H{})
+		c.HTML(http.StatusOK, "addMap.html", gin.H{})
 	case "2":
-		c.HTML(http.StatusOK, "updateRoad.html", gin.H{})
+		c.HTML(http.StatusOK, "addRoad.html", gin.H{})
 	case "3":
-		c.HTML(http.StatusOK, "removeNode.html", gin.H{})
+		c.HTML(http.StatusOK, "updateMap.html", gin.H{})
 	case "4":
+		c.HTML(http.StatusOK, "updateRoad.html", gin.H{})
+	case "5":
+		c.HTML(http.StatusOK, "removeNode.html", gin.H{})
+	case "6":
 		c.HTML(http.StatusOK, "removeEdge.html", gin.H{})
 	case "0":
 		c.Redirect(http.StatusFound, "/")
@@ -89,11 +97,72 @@ func Admin(c *gin.Context) {
 	}
 }
 
-func UpdateMap(c *gin.Context) {
-	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
-	adjList, err := ReadCampusGraph(filename)
+func AddMap(c *gin.Context) {
+	client, _ := InitRedis()
+	adjList, err := ReadCampusGraph(client)
 	if err != nil {
-		fmt.Printf("读取文件错误: %s\n", err)
+		return
+	}
+
+	idStr := c.PostForm("nodeID")
+	newName := c.PostForm("newName")
+	nodeID, _ := strconv.Atoi(idStr)
+
+	node := Node{
+		ID:   nodeID,
+		Name: newName,
+	}
+
+	adjList.AddNode(node)
+
+	err = SaveCampusGraph(adjList, client)
+	if err != nil {
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/startAdmin")
+	//c.HTML(http.StatusOK, "admin.html", gin.H{})
+}
+
+func AddRoad(c *gin.Context) {
+	client, err := InitRedis()
+	if err != nil {
+		return
+	}
+
+	adjList, err := ReadCampusGraph(client)
+	if err != nil {
+		return
+	}
+
+	_startVex := c.PostForm("startVex")
+	_endVex := c.PostForm("endVex")
+	_newWeight := c.PostForm("newWeight")
+
+	startVex, _ := strconv.Atoi(_startVex)
+	endVex, _ := strconv.Atoi(_endVex)
+	newWeight, _ := strconv.Atoi(_newWeight)
+
+	edge := Edge{
+		StartVex: startVex,
+		EndVex:   endVex,
+		Weight:   newWeight,
+	}
+
+	adjList.AddEdge(edge)
+
+	err = SaveCampusGraph(adjList, client)
+	if err != nil {
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/startAdmin")
+}
+
+func UpdateMap(c *gin.Context) {
+	client, _ := InitRedis()
+	adjList, err := ReadCampusGraph(client)
+	if err != nil {
 		return
 	}
 
@@ -105,7 +174,7 @@ func UpdateMap(c *gin.Context) {
 		return
 	}
 
-	err = SaveCampusGraph(adjList, filename)
+	err = SaveCampusGraph(adjList, client)
 	if err != nil {
 		return
 	}
@@ -114,10 +183,13 @@ func UpdateMap(c *gin.Context) {
 }
 
 func UpdateRoad(c *gin.Context) {
-	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
-	adjList, err := ReadCampusGraph(filename)
+	client, err := InitRedis()
 	if err != nil {
-		fmt.Printf("读取文件错误: %s\n", err)
+		return
+	}
+
+	adjList, err := ReadCampusGraph(client)
+	if err != nil {
 		return
 	}
 
@@ -133,7 +205,7 @@ func UpdateRoad(c *gin.Context) {
 		return
 	}
 
-	err = SaveCampusGraph(adjList, filename)
+	err = SaveCampusGraph(adjList, client)
 	if err != nil {
 		return
 	}
@@ -142,10 +214,13 @@ func UpdateRoad(c *gin.Context) {
 }
 
 func RemoveNode(c *gin.Context) {
-	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
-	adjList, err := ReadCampusGraph(filename)
+	client, err := InitRedis()
 	if err != nil {
-		fmt.Printf("读取文件错误: %s\n", err)
+		return
+	}
+
+	adjList, err := ReadCampusGraph(client)
+	if err != nil {
 		return
 	}
 
@@ -157,9 +232,8 @@ func RemoveNode(c *gin.Context) {
 	adjList.RemoveNode(nodeID)
 
 	// 保存更新后的校园平面图
-	err = SaveCampusGraph(adjList, filename)
+	err = SaveCampusGraph(adjList, client)
 	if err != nil {
-		fmt.Printf("保存文件错误: %s\n", err)
 		return
 	}
 
@@ -167,10 +241,9 @@ func RemoveNode(c *gin.Context) {
 }
 
 func RemoveEdge(c *gin.Context) {
-	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
-	adjList, err := ReadCampusGraph(filename)
+	client, err := InitRedis()
+	adjList, err := ReadCampusGraph(client)
 	if err != nil {
-		fmt.Printf("读取文件错误: %s\n", err)
 		return
 	}
 
@@ -184,7 +257,7 @@ func RemoveEdge(c *gin.Context) {
 	adjList.RemoveEdge(startVex, endVex)
 
 	// 保存更新后的校园平面图
-	err = SaveCampusGraph(adjList, filename)
+	err = SaveCampusGraph(adjList, client)
 	if err != nil {
 		fmt.Printf("保存文件错误: %s\n", err)
 		return
@@ -199,11 +272,9 @@ func User(c *gin.Context) {
 	switch choice {
 	case "1":
 		// 查看地图
-		fmt.Println("校园平面图：")
-		filename := "/home/shawn/Develop/CampusGuide/graph.txt"
-		adjList, err := ReadCampusGraph(filename)
+		client, _ := InitRedis()
+		adjList, err := ReadCampusGraph(client)
 		if err != nil {
-			fmt.Printf("读取文件错误: %s\n", err)
 			return
 		}
 
@@ -239,8 +310,9 @@ func User(c *gin.Context) {
 }
 
 func ShortestPath(c *gin.Context) {
-	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
-	adjList, err := ReadCampusGraph(filename)
+	client, _ := InitRedis()
+	adjList, _ := ReadCampusGraph(client)
+
 	source := c.PostForm("sourceID")
 	target := c.PostForm("targetID")
 
@@ -275,8 +347,9 @@ func ShortestPath(c *gin.Context) {
 }
 
 func BFSPath(c *gin.Context) {
-	filename := "/home/shawn/Develop/CampusGuide/graph.txt"
-	adjList, err := ReadCampusGraph(filename)
+	client, _ := InitRedis()
+	adjList, _ := ReadCampusGraph(client)
+
 	source := c.PostForm("sourceID")
 	target := c.PostForm("targetID")
 

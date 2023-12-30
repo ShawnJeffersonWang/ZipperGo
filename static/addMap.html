@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Update Map</title>
     <style>
         body {
             display: flex;
@@ -52,15 +52,13 @@
 </head>
 <body>
 <div class="container">
-    <h1>更新道路</h1>
-    <form action="/updateRoad" method="POST">
-        <label for="startVex">起点</label>
-        <input type="text" id="startVex" name="startVex"><br><br>
-        <label for="endVex">终点</label>
-        <input type="text" id="endVex" name="endVex"><br><br>
-        <label for="newWeight">权重</label>
-        <input type="text" id="newWeight" name="newWeight"><br><br>
-        <input type="submit" value="更新">
+    <h1>添加景点</h1>
+    <form action="/addMap" method="POST">
+        <label for="nodeID">ID</label>
+        <input type="text" id="nodeID" name="nodeID"><br><br>
+        <label for="newName">名称</label>
+        <input type="text" id="newName" name="newName"><br><br>
+        <input type="submit" value="添加">
     </form>
 </div>
 </body>
