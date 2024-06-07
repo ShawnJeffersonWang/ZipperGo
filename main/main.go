@@ -301,7 +301,6 @@ func User(c *gin.Context) {
 		c.HTML(http.StatusOK, "bfs.html", gin.H{})
 	case "0":
 		// 退出
-		fmt.Println("退出程序")
 		c.Redirect(http.StatusFound, "/")
 
 	default:
