@@ -33,8 +33,8 @@ The Campus Navigation Project is designed to help students and visitors navigate
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/ShawnJeffersonWang/CampusGuide.git
-    cd CampusGuide
+    git clone https://github.com/ShawnJeffersonWang/campus-guide.git
+    cd campus-guide
     ```
 
 2. Ensure you have Go and Redis installed on your system.
